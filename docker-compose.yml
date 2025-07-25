@@ -1,0 +1,66 @@
+#user yml
+services:
+  # -------------------------------------------------
+  #  1) Datenbank
+  # -------------------------------------------------
+
+
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: users
+    volumes:
+      - user_db_data:/var/lib/postgresql/data
+    ports: ["5438:5432"]    #weiterleitung an 5432 damit postqres zuhört 5432 sonst von auth service belegt
+
+
+  # -------------------------------------------------
+  #  2) Einmal-Migrator
+  # -------------------------------------------------
+  user_migrator:
+    image: postgres:16
+    depends_on: [ db ]
+    volumes:
+      - ./migrations:/migrations:ro
+    environment:
+      # dasselbe Passwort, das du in db: POSTGRES_PASSWORD gesetzt hast
+      PGPASSWORD: postgres
+    entrypoint: >
+      sh -c '
+        until pg_isready -h db -U postgres -d users; do
+          echo "⌛ waiting for db …"; sleep 1;
+        done &&
+        for f in /migrations/*.sql; do
+          echo "🚀 running $${f}";
+          psql -h db -U postgres -d users -v ON_ERROR_STOP=1 -f "$${f}";
+        done
+      '
+    restart: "no"          # einmal laufen, dann stoppen
+
+
+  # -------------------------------------------------
+  #  3) User-Service
+  # -------------------------------------------------
+  user-service:
+    build: user-service
+    env_file: user-service/.env
+    depends_on: [ db, user_migrator ]
+    ports: ["4000:4000"]
+    volumes:
+      - user_uploads:/app/uploads
+    networks:
+      - finders-network
+
+volumes:
+  user_db_data:
+  user_uploads:
+
+
+networks:
+  default:
+    name: finders-network
+    external: true
+

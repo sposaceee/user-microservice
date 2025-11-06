@@ -15,6 +15,7 @@ services:
     volumes:
       - user_db_data:/var/lib/postgresql/data
     ports: ["5438:5432"]    #weiterleitung an 5432 damit postqres zuhört 5432 sonst von auth service belegt
+    
 
 
   # -------------------------------------------------
@@ -60,7 +61,5 @@ volumes:
 
 
 networks:
-  default:
-    name: finders-network
+  finders-network:
     external: true
-

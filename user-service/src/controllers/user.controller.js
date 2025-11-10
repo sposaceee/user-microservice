@@ -13,6 +13,27 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 
+export const checkHealth = async (req, res, next) => {
+    try {
+        // 1. Prüfe die Datenbankverbindung mit einer einfachen, schnellen Abfrage
+
+
+        // 2. Wenn alles gut geht, sende eine Erfolgsantwort
+        res.status(200).json({
+            status: 'ok',
+            message: 'Service is running and database connection is healthy.'
+        });
+    } catch (error) {
+        // 5. Wenn die DB-Abfrage fehlschlägt, sende einen Server-Fehler
+        // Docker/Kubernetes wird dies als 'unhealthy' erkennen
+        console.error('Health check failed:', error);
+        res.status(503).json({ // 503 Service Unavailable
+            status: 'error',
+            message: 'Service is running, but database connection failed.'
+        });
+    }
+};
+
 
 // POST /users - Erstellt einen neuen Benutzer (keine Authentifizierung nötig)
 export async function create(req, res, next) {

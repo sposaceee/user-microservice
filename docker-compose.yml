@@ -53,7 +53,7 @@ services:
     volumes:
       - user_uploads:/app/uploads
     networks:
-      - finders-network
+      - service-network
 
 volumes:
   user_db_data:
@@ -61,5 +61,5 @@ volumes:
 
 
 networks:
-  finders-network:
+  service-network:
     external: true

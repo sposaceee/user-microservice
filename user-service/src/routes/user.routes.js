@@ -8,6 +8,10 @@ const router = Router();
 
 // --- Öffentliche Route ---
 // POST /users: Erstellt einen neuen Benutzer. Keine Authentifizierung erforderlich.
+
+
+router.get('/health', userController.checkHealth);
+
 router.post(
     '/',
     body('name').isLength({ min: 2 }),
